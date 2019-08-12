@@ -7,6 +7,7 @@
     "@types/jest": "^24.0.16",
     "@types/node": "^12.6.8",
     "@types/node-fetch": "^2.5.0",
+    "@types/normalizr": "^2.0.18",
     "jest": "^24.8.0",
     "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "@types/zen-observable": "^0.8.0",
+    "normalizr": "^3.4.1",
     "zen-observable": "^0.8.14"
   },
   "scripts": {

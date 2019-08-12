@@ -27,31 +27,32 @@ it("should create a client", async () => {
       status: 200,
     }
   });
-})
-
-it("should cache result", async () => {
-  const fakeFetch = createFakeFetch({ response: {} });
-  const client = new Client({
-    links: [
-      createHttpLink({
-        fetch: fakeFetch
-      })
-    ],
-    cache: new RAMCache(),
-  });
-
-  await client.emit({
-    request: {
-      url: "https://someurl.com",
-      method: "GET",
-    }
-  });
-  await client.emit({
-    request: {
-      url: "https://someurl.com",
-      method: "GET",
-    }
-  });
-
-  expect(fakeFetch).toHaveBeenCalledTimes(1);
 });
+
+//
+// it("should cache result", async () => {
+//   const fakeFetch = createFakeFetch({ response: {} });
+//   const client = new Client({
+//     links: [
+//       createHttpLink({
+//         fetch: fakeFetch
+//       })
+//     ],
+//     cache: new RAMCache(),
+//   });
+//
+//   await client.emit({
+//     request: {
+//       url: "https://someurl.com",
+//       method: "GET",
+//     }
+//   });
+//   await client.emit({
+//     request: {
+//       url: "https://someurl.com",
+//       method: "GET",
+//     }
+//   });
+//
+//   expect(fakeFetch).toHaveBeenCalledTimes(1);
+// });

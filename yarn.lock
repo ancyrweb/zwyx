@@ -367,6 +367,13 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.8.tgz#e469b4bf9d1c9832aee4907ba8a051494357c12c"
   integrity sha512-aX+gFgA5GHcDi89KG5keey2zf0WfZk/HAQotEamsK2kbey+8yGKcson0hbK8E+v0NArlCJQCqMP161YhV6ZXLg==
 
+"@types/normalizr@^2.0.18":
+  version "2.0.18"
+  resolved "https://registry.yarnpkg.com/@types/normalizr/-/normalizr-2.0.18.tgz#a42fc1e33a036be3009d6285dd776d94fd88d60d"
+  integrity sha1-pC/B4zoDa+MAnWKF3XdtlP2I1g0=
+  dependencies:
+    normalizr "*"
+
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -2452,6 +2459,11 @@ normalize-path@^2.1.1:
   integrity sha1-GrKLVW4Zg2Oowab35vogE3/mrtk=
   dependencies:
     remove-trailing-separator "^1.0.1"
+
+normalizr@*, normalizr@^3.4.1:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/normalizr/-/normalizr-3.4.1.tgz#cf4f8ac7a4a0dd7fe504b77cbe9dd533cb3e45b5"
+  integrity sha512-gei+tJucERU8vYN6TFQL2k5YMLX2Yh7nlylKMJC65+Uu/LS3xQCDJc8cies72aHouycKYyVgcnyLRbaJsigXKw==
 
 npm-bundled@^1.0.1:
   version "1.0.6"
