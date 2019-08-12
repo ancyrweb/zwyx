@@ -1,0 +1,25 @@
+{
+   "include":  [
+      "src/**/*"
+   ],
+   "exclude": [
+      "src/**/__tests__/*.ts"
+   ],
+   "compilerOptions": {
+      "lib": [
+         "es5",
+         "es6",
+         "esnext.asynciterable"
+      ],
+      "target": "es2015",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "outDir": "./dist",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "sourceMap": true,
+      "allowSyntheticDefaultImports": true,
+      "declaration": true
+   }
+}
