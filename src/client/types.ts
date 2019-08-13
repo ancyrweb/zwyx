@@ -13,8 +13,10 @@ export type RawRequest = {
 export type Request = Pick<RawRequest, "request">;
 export type Response<TData extends any> = {
   data: TData;
-  info: {
-    status?: number;
-    headers?: any;
-  };
+  info: ResponseInfo;
+};
+
+export type ResponseInfo = {
+  status?: number;
+  headers?: any;
 };

@@ -16,6 +16,14 @@ class NoopCache implements CacheInterface {
   clear(): Promise<void> {
     return Promise.resolve();
   }
+
+  merge(data: Record<string, any>) {
+    return Promise.resolve();
+  }
+
+  all<T extends any>(): Promise<Record<string, T>> {
+    return Promise.resolve(null);
+  }
 }
 
 export default NoopCache;

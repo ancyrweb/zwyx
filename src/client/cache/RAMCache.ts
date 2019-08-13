@@ -1,4 +1,4 @@
-import CacheInterface, { SetCacheConfig } from "./CacheInterface";
+import CacheInterface from "./CacheInterface";
 
 type CacheEntry = {
   config: {
@@ -60,6 +60,17 @@ class RAMCache implements CacheInterface {
   clear(): Promise<void> {
     this.cache = {};
     return Promise.resolve();
+  }
+
+  merge(data: Record<string, any>) {
+    this.cache = {
+      ...this.cache,
+      ...data
+    };
+  }
+
+  all<T extends any>(): Promise<Record<string, T>> {
+    return Promise.resolve(this.cache) as any;
   }
 }
 

@@ -1,17 +1,27 @@
 import LinkChain, { Link } from "./link/LinkChain";
-import { RawRequest, Request } from "./types";
+import { RawRequest, Request, ResponseInfo } from "./types";
 import Context from "./Context";
 import CacheManager from "./cache/CacheManager";
 import NoopCache from "./cache/NoopCache";
+import Normalizer, { Normalized } from "./normalizer/Normalizer";
+import extractRESTPath from "./utils/extractRESTPath";
 
 type ClientConfig = {
   links: Link[];
   cache?: CacheManager;
+  normalizer?: Normalizer;
+};
+
+type Response<T extends any> = {
+  raw: T;
+  data: object;
+  info: ResponseInfo;
 };
 
 class Client {
   private linkChain: LinkChain;
   private cacheManager: CacheManager;
+  public normalizer?: Normalizer;
 
   constructor(config: ClientConfig) {
     this.linkChain = new LinkChain(config.links);
@@ -20,9 +30,10 @@ class Client {
       new CacheManager({
         cache: new NoopCache()
       });
+    this.normalizer = config.normalizer;
   }
 
-  async emit(data: Request) {
+  async emit<T extends any>(data: Request): Promise<Response<T>> {
     if (!data.request.method) {
       data.request.method = "GET";
     }
@@ -32,8 +43,30 @@ class Client {
       context: new Context()
     };
 
-    const result = await this.linkChain.emit(request);
-    return result;
+    const result: any = await this.linkChain.emit(request);
+    const raw: T = result.data;
+    let normalized: Normalized<any> | null = null;
+
+    if (this.normalizer && typeof raw === "object" && raw !== null) {
+      normalized = this.normalizer.normalize(
+        extractRESTPath(data.request.url),
+        raw as any
+      );
+      this.cacheManager.store(normalized);
+    }
+
+    return {
+      info: result.info,
+      data: normalized,
+      raw
+    };
+  }
+
+  getCacheManager() {
+    return this.cacheManager;
+  }
+  getCache() {
+    return this.cacheManager.cache;
   }
 }
 

@@ -13,6 +13,14 @@ export type NormalizerConfig = {
   routes?: Record<string, Route>;
 };
 
+export type Normalized<K extends any> = Record<
+  string,
+  {
+    ids: string[] | number[];
+    entities: Record<string, K>;
+  }
+>;
+
 const flatten = (arr: any[]) => {
   let next = [];
   for (let val of arr) {
@@ -80,7 +88,10 @@ class Normalizer {
     return null;
   }
 
-  private deepNormalize(dataMapping: any, data: any) {
+  private deepNormalize<T extends any>(
+    dataMapping: any,
+    data: any
+  ): Normalized<T> {
     let nextData = this.recursiveMapData(dataMapping, data);
     return mergeAllEntries(nextData);
   }
@@ -102,11 +113,13 @@ class Normalizer {
     return flatten(nextData);
   }
 
-  private doNormalize(data: any, schema: any) {
+  private doNormalize<T extends any>(data: any, schema: any): Normalized<T> {
     const normalized = normalize(data, Array.isArray(data) ? [schema] : schema);
+
     const out = {};
     for (let key in normalized.entities) {
       const idKey = this.idMapping[key] || "id";
+
       const entities = normalized.entities[key];
       let ids = Object.keys(entities).map(k => entities[k][idKey]);
       out[key] = {
@@ -128,7 +141,10 @@ class Normalizer {
     return schema;
   }
 
-  normalize(entity: string, data: object | object[]) {
+  normalize<T extends any>(
+    entity: string,
+    data: object | object[]
+  ): Normalized<T> {
     const route = this.findRoute(entity);
     if (route && typeof route === "object") {
       return this.deepNormalize(route, data);
