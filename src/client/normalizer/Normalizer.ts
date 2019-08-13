@@ -1,24 +1,59 @@
 import { normalize, schema } from "normalizr";
-import SchemaBuilder, {Schema} from "./SchemaBuilder";
+import SchemaBuilder, { Schema } from "./SchemaBuilder";
 
 export type LocalSchema = Record<string, schema.Entity>;
-export type Route = string | [string];
-export type NormalizerConfig = {
-  entities?: Schema,
-  routes?: Record<string, Route>,
+type NestedRoute = Record<string, string | RouteObject>;
+interface RouteObject {
+  [x: string]: string | NestedRoute;
 }
+
+export type Route = string | NestedRoute;
+export type NormalizerConfig = {
+  entities?: Schema;
+  routes?: Record<string, Route>;
+};
+
+const flatten = (arr: any[]) => {
+  let next = [];
+  for (let val of arr) {
+    if (Array.isArray(val)) {
+      for (let innerVal of val) {
+        next.push(innerVal);
+      }
+    } else {
+      next.push(val);
+    }
+  }
+
+  return next;
+};
+
+const mergeAllEntries = data => {
+  let out = {};
+  for (let row of data) {
+    for (let key in row) {
+      if (!out[key]) {
+        out[key] = row[key];
+      } else {
+        // TODO : deep merge, eventually check conflicts ?
+      }
+    }
+  }
+  return out;
+};
 
 class Normalizer {
   private schema: LocalSchema;
   private idMapping: Record<string, string>;
-  private routes : Record<string, Route> = {};
+  private routes: Record<string, Route> = {};
   private routesRegexes = {};
 
   constructor(config?: NormalizerConfig) {
     const entities = config && config.entities ? config.entities : {};
     this.routes = config && config.routes ? config.routes : {};
     Object.keys(this.routes).forEach(key => {
-      const pattern = key.replace(/:(\w)+/g, "([^/]+)") + "((\\?)([^=]+)(=(.+))?)?$";
+      const pattern =
+        key.replace(/:(\w)+/g, "([^/]+)") + "((\\?)([^=]+)(=(.+))?)?$";
       this.routesRegexes[key] = new RegExp(pattern);
     });
 
@@ -29,17 +64,11 @@ class Normalizer {
   }
 
   findSchema(name: string) {
-    const matchingRoute = this.findSchemaMatchingRoute(name);
-    if (matchingRoute) {
-      return this.schema[Array.isArray(matchingRoute) ? matchingRoute[0] : matchingRoute as string];
-    }
-
-    return this.schema[name];
+    return this.schema[name] || null;
   }
 
-  findSchemaMatchingRoute(name: string) {
-    if (this.routes[name])
-      return this.routes[name];
+  findRoute(name: string) {
+    if (this.routes[name]) return this.routes[name];
 
     for (let regexKey in this.routesRegexes) {
       const regex = this.routesRegexes[regexKey];
@@ -47,15 +76,33 @@ class Normalizer {
         return this.routes[regexKey];
       }
     }
+
     return null;
   }
 
-  normalize(entity: string, data: object|object[]) {
-    let schema = this.findSchema(entity);
-    if (!schema) {
-      throw new Error("Cannot normalize : entity name " + entity + " doesn't exist.");
+  private deepNormalize(dataMapping: any, data: any) {
+    let nextData = this.recursiveMapData(dataMapping, data);
+    return mergeAllEntries(nextData);
+  }
+
+  private recursiveMapData(dataMapping: any, data: any) {
+    let nextData = [];
+    for (let key in dataMapping) {
+      if (!data[key]) {
+        throw new Error("could not find " + key + " in data object");
+      }
+
+      if (typeof dataMapping[key] === "string") {
+        nextData.push(this.normalize(dataMapping[key], data[key]));
+      } else {
+        nextData.push(this.recursiveMapData(dataMapping[key], data[key]));
+      }
     }
 
+    return flatten(nextData);
+  }
+
+  private doNormalize(data: any, schema: any) {
     const normalized = normalize(data, Array.isArray(data) ? [schema] : schema);
     const out = {};
     for (let key in normalized.entities) {
@@ -64,11 +111,33 @@ class Normalizer {
       let ids = Object.keys(entities).map(k => entities[k][idKey]);
       out[key] = {
         ids,
-        entities,
-      }
+        entities
+      };
     }
 
     return out;
+  }
+
+  safeGetSchema(name: string) {
+    const schema = this.findSchema(name);
+    if (!schema) {
+      throw new Error(
+        "Cannot normalize : entity name " + name + " doesn't exist."
+      );
+    }
+    return schema;
+  }
+
+  normalize(entity: string, data: object | object[]) {
+    const route = this.findRoute(entity);
+    if (route && typeof route === "object") {
+      return this.deepNormalize(route, data);
+    }
+
+    return this.doNormalize(
+      data,
+      this.safeGetSchema(route ? (route as string) : entity)
+    );
   }
 }
 

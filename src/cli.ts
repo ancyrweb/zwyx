@@ -8,8 +8,8 @@ const client = new Client({
         console.log(url, data);
         return new Promise(a => a({}));
       }
-    }),
-  ],
+    })
+  ]
 });
 
 client.emit("https://site.com/foo/bar");

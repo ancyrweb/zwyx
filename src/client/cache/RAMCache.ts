@@ -1,22 +1,22 @@
-import CacheInterface, {SetCacheConfig} from "./CacheInterface";
+import CacheInterface, { SetCacheConfig } from "./CacheInterface";
 
 type CacheEntry = {
   config: {
-    ttl: number
-    createdAt: Date,
-  },
-  value: any,
-}
+    ttl: number;
+    createdAt: Date;
+  };
+  value: any;
+};
 
 type Config = {
-  ttl?: number
-}
+  ttl?: number;
+};
 class RAMCache implements CacheInterface {
-  private cache : Record<string, CacheEntry> = {};
-  private config : Config;
+  private cache: Record<string, CacheEntry> = {};
+  private config: Config;
 
   constructor(config?: Config) {
-    this.config = config || {};
+    this.config = config || {};
   }
 
   set(name: string, value: any, config): Promise<void> {
@@ -24,7 +24,7 @@ class RAMCache implements CacheInterface {
     this.cache[name] = {
       config: {
         ttl,
-        createdAt: new Date(),
+        createdAt: new Date()
       },
       value
     };
@@ -40,7 +40,9 @@ class RAMCache implements CacheInterface {
 
     // Check TTL
     if (entry.config.ttl > 0) {
-      const delta = Math.floor((Date.now() - entry.config.createdAt.getTime()) / 1000);
+      const delta = Math.floor(
+        (Date.now() - entry.config.createdAt.getTime()) / 1000
+      );
       if (delta > entry.config.ttl) {
         delete this.cache[name];
         return Promise.resolve(null);

@@ -1,4 +1,4 @@
-import CacheInterface, {SetCacheConfig} from "./CacheInterface";
+import CacheInterface, { SetCacheConfig } from "./CacheInterface";
 
 class NoopCache implements CacheInterface {
   set(name: string, value: any, config): Promise<void> {

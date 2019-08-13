@@ -1,13 +1,13 @@
-import LinkChain, {Link} from "./link/LinkChain";
-import {RawRequest, Request} from "./types";
+import LinkChain, { Link } from "./link/LinkChain";
+import { RawRequest, Request } from "./types";
 import Context from "./Context";
 import CacheManager from "./cache/CacheManager";
 import NoopCache from "./cache/NoopCache";
 
 type ClientConfig = {
-  links: Link[]
-  cache?: CacheManager,
-}
+  links: Link[];
+  cache?: CacheManager;
+};
 
 class Client {
   private linkChain: LinkChain;
@@ -15,9 +15,11 @@ class Client {
 
   constructor(config: ClientConfig) {
     this.linkChain = new LinkChain(config.links);
-    this.cacheManager = config.cache || new CacheManager({
-      cache: new NoopCache(),
-    });
+    this.cacheManager =
+      config.cache ||
+      new CacheManager({
+        cache: new NoopCache()
+      });
   }
 
   async emit(data: Request) {
@@ -25,9 +27,9 @@ class Client {
       data.request.method = "GET";
     }
 
-    const request : RawRequest = {
+    const request: RawRequest = {
       ...data,
-      context: new Context(),
+      context: new Context()
     };
 
     const result = await this.linkChain.emit(request);

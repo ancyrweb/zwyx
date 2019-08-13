@@ -1,5 +1,5 @@
 class Context {
-  private data : Record<string, any>;
+  private data: Record<string, any>;
   get(name: string) {
     return this.data[name] || null;
   }

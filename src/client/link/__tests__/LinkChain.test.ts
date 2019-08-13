@@ -9,7 +9,7 @@ it("should refuse an empty list of links", () => {
 
 it("should accept one simple link", async () => {
   const mockLink = (data: any) => {
-    return Observable.from([data])
+    return Observable.from([data]);
   };
   const link = new LinkChain([mockLink]);
   const result = await link.emit({ foo: "bar" });
@@ -21,26 +21,27 @@ it("should let data pass by multiple links", async () => {
     return new Observable(obs => {
       forward({
         ...data,
-        passedByFirst: true,
+        passedByFirst: true
       }).subscribe({
         next: obs.next.bind(obs),
         error: obs.error.bind(obs),
-        complete: obs.complete.bind(obs),
-      })
-    })
+        complete: obs.complete.bind(obs)
+      });
+    });
   };
   const terminalLink = (data: any) => {
-    return Observable.from([{
-      ...data,
-      passedBySecond: true,
-    }])
+    return Observable.from([
+      {
+        ...data,
+        passedBySecond: true
+      }
+    ]);
   };
 
   const link = new LinkChain([firstLink, terminalLink]);
   const result = await link.emit({});
   expect(result).toEqual({
     passedByFirst: true,
-    passedBySecond: true,
+    passedBySecond: true
   });
 });
-

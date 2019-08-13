@@ -16,7 +16,7 @@ it("should create a client", async () => {
   const result = await client.emit({
     request: {
       url: "https://someurl.com",
-      method: "GET",
+      method: "GET"
     }
   });
 
@@ -24,7 +24,7 @@ it("should create a client", async () => {
     data: {},
     info: {
       headers: {},
-      status: 200,
+      status: 200
     }
   });
 });

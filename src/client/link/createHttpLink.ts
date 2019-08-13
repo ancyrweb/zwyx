@@ -1,30 +1,30 @@
 import * as Observable from "zen-observable";
-import {RawRequest, Response} from "../types";
+import { RawRequest, Response } from "../types";
 
 export type HttpFetch = (url: string, data: any) => Promise<any>;
 export type HttpLinkConfig = {
-  fetch: HttpFetch
-}
+  fetch: HttpFetch;
+};
 
-const findFetch = (config?: HttpLinkConfig) : HttpFetch => {
+const findFetch = (config?: HttpLinkConfig): HttpFetch => {
   const configFetch = config ? config.fetch : null;
   // @ts-ignore
   return configFetch || global.fetch;
 };
 
 const createResponse = <T extends any>(response: {
-  data: T,
-  status: number
-  headers: any,
-}) : Response<T> => {
+  data: T;
+  status: number;
+  headers: any;
+}): Response<T> => {
   return {
     data: response.data,
     info: {
       status: response.status,
-      headers: response.headers,
+      headers: response.headers
     }
-  }
-}
+  };
+};
 
 // TODO : merge similar simultaneous HTTP requests
 const createHttpLink = (config?: HttpLinkConfig) => {
@@ -45,12 +45,14 @@ const createHttpLink = (config?: HttpLinkConfig) => {
 
     return new Observable(obs => {
       fetch(url, request)
-        .then((r) => {
-          return r.json().then(json => createResponse({
-            status: r.status,
-            headers: r.headers,
-            data: json,
-          }));
+        .then(r => {
+          return r.json().then(json =>
+            createResponse({
+              status: r.status,
+              headers: r.headers,
+              data: json
+            })
+          );
         })
         .then(obj => {
           obs.next(obj);
@@ -58,7 +60,7 @@ const createHttpLink = (config?: HttpLinkConfig) => {
         })
         .catch(obs.error.bind(obs));
     });
-  }
+  };
 };
 
 export default createHttpLink;

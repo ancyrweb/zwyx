@@ -12,7 +12,9 @@ class LinkChain {
   private callable: LinkForward;
   constructor(links: Link[]) {
     if (links.length === 0) {
-      throw new Error("You must provide at least one link inside your link chain.")
+      throw new Error(
+        "You must provide at least one link inside your link chain."
+      );
     }
 
     this.callable = buildLinkChain(links);
