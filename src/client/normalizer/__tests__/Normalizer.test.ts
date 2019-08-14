@@ -1,477 +1,674 @@
 import Normalizer from "../Normalizer";
 
-it("should normalize nothing", () => {
-  const normalizer = new Normalizer();
-});
-
-it("should normalize data", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        photo: "photos"
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("users", {
-    id: 1,
-    name: "rewieer",
-    photo: {
-      id: 2,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
+describe('normalization', () => {
+  it("should normalize data", () => {
+    const normalizer = new Normalizer({
       entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 2
+        users: {
+          photo: "photos"
         }
       }
-    },
-    photos: {
-      ids: [2],
-      entities: {
-        "2": {
-          id: 2,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
+    });
 
-it("should normalize data with subarrays", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        photos: ["photos"]
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("users", {
-    id: 1,
-    name: "rewieer",
-    photos: [
-      {
-        id: 1,
-        url: "https://someurl.com"
-      },
-      {
-        id: 2,
-        url: "https://someurl.com"
-      }
-    ]
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photos: [1, 2]
-        }
-      }
-    },
-    photos: {
-      ids: [1, 2],
-      entities: {
-        "1": {
-          id: 1,
-          url: "https://someurl.com"
-        },
-        "2": {
-          id: 2,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
-
-it("should normalize an array of data", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        photo: "photos"
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("users", [
-    {
+    const normalized = normalizer.normalize("users", {
       id: 1,
       name: "rewieer",
       photo: {
         id: 2,
         url: "https://someurl.com"
       }
-    },
-    {
-      id: 2,
-      name: "johndoe",
-      photo: {
-        id: 4,
-        url: "https://someurl.com"
-      }
-    }
-  ]);
+    });
 
-  expect(normalized).toEqual({
-    users: {
-      ids: [1, 2],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 2
-        },
-        "2": {
-          id: 2,
-          name: "johndoe",
-          photo: 4
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 2
+          }
+        }
+      },
+      photos: {
+        ids: [2],
+        entities: {
+          "2": {
+            id: 2,
+            url: "https://someurl.com"
+          }
         }
       }
-    },
-    photos: {
-      ids: [2, 4],
+    });
+  });
+  it("should normalize data with subarrays", () => {
+    const normalizer = new Normalizer({
       entities: {
-        "2": {
-          id: 2,
+        users: {
+          photos: ["photos"]
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("users", {
+      id: 1,
+      name: "rewieer",
+      photos: [
+        {
+          id: 1,
           url: "https://someurl.com"
         },
-        "4": {
+        {
+          id: 2,
+          url: "https://someurl.com"
+        }
+      ]
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photos: [1, 2]
+          }
+        }
+      },
+      photos: {
+        ids: [1, 2],
+        entities: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          },
+          "2": {
+            id: 2,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    });
+  });
+  it("should normalize an array of data", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("users", [
+      {
+        id: 1,
+        name: "rewieer",
+        photo: {
+          id: 2,
+          url: "https://someurl.com"
+        }
+      },
+      {
+        id: 2,
+        name: "johndoe",
+        photo: {
           id: 4,
           url: "https://someurl.com"
         }
       }
-    }
-  });
-});
+    ]);
 
-it("should use custom ID", () => {
-  const normalizer = new Normalizer({
-    entities: {
+    expect(normalized).toEqual({
       users: {
-        id: "user_id",
-        photo: "photos"
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("users", {
-    user_id: 1,
-    name: "rewieer",
-    photo: {
-      id: 2,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          user_id: 1,
-          name: "rewieer",
-          photo: 2
+        ids: [1, 2],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 2
+          },
+          "2": {
+            id: 2,
+            name: "johndoe",
+            photo: 4
+          }
         }
-      }
-    },
-    photos: {
-      ids: [2],
-      entities: {
-        "2": {
-          id: 2,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
-it("should use custom ID of nested schemas", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        id: "user_id",
-        photo: "photos"
       },
       photos: {
-        id: "photo_id"
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("users", {
-    user_id: 1,
-    name: "rewieer",
-    photo: {
-      photo_id: 2,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          user_id: 1,
-          name: "rewieer",
-          photo: 2
+        ids: [2, 4],
+        entities: {
+          "2": {
+            id: 2,
+            url: "https://someurl.com"
+          },
+          "4": {
+            id: 4,
+            url: "https://someurl.com"
+          }
         }
       }
-    },
-    photos: {
-      ids: [2],
+    });
+  });
+  it("should use custom ID", () => {
+    const normalizer = new Normalizer({
       entities: {
-        "2": {
-          photo_id: 2,
-          url: "https://someurl.com"
+        users: {
+          id: "user_id",
+          photo: "photos"
         }
       }
-    }
-  });
-});
+    });
 
-it("should recognize a route", () => {
-  const normalizer = new Normalizer({
-    entities: {
+    const normalized = normalizer.normalize("users", {
+      user_id: 1,
+      name: "rewieer",
+      photo: {
+        id: 2,
+        url: "https://someurl.com"
+      }
+    });
+
+    expect(normalized).toEqual({
       users: {
-        photo: "photos"
-      }
-    },
-    routes: {
-      "/users/1": "users"
-    }
-  });
-
-  const normalized = normalizer.normalize("/users/1", {
-    id: 1,
-    name: "rewieer",
-    photo: {
-      id: 1,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 1
+        ids: [1],
+        entities: {
+          "1": {
+            user_id: 1,
+            name: "rewieer",
+            photo: 2
+          }
+        }
+      },
+      photos: {
+        ids: [2],
+        entities: {
+          "2": {
+            id: 2,
+            url: "https://someurl.com"
+          }
         }
       }
-    },
-    photos: {
-      ids: [1],
+    });
+  });
+  it("should use custom ID of nested schemas", () => {
+    const normalizer = new Normalizer({
       entities: {
-        "1": {
-          id: 1,
-          url: "https://someurl.com"
+        users: {
+          id: "user_id",
+          photo: "photos"
+        },
+        photos: {
+          id: "photo_id"
         }
       }
-    }
-  });
-});
+    });
 
-it("should recognize a route with an array", () => {
-  const normalizer = new Normalizer({
-    entities: {
+    const normalized = normalizer.normalize("users", {
+      user_id: 1,
+      name: "rewieer",
+      photo: {
+        photo_id: 2,
+        url: "https://someurl.com"
+      }
+    });
+
+    expect(normalized).toEqual({
       users: {
-        photo: "photos"
+        ids: [1],
+        entities: {
+          "1": {
+            user_id: 1,
+            name: "rewieer",
+            photo: 2
+          }
+        }
+      },
+      photos: {
+        ids: [2],
+        entities: {
+          "2": {
+            photo_id: 2,
+            url: "https://someurl.com"
+          }
+        }
       }
-    },
-    routes: {
-      "/users/1": "users"
-    }
+    });
   });
+  it("should normalize more complicated nested schemas", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        },
+      },
+      routes: {
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users",
+          }
+        }
+      }
+    });
 
-  const normalized = normalizer.normalize("/users/1", [
-    {
+    const normalized = normalizer.normalize("/users", {
+      online: [{
+        id: 1,
+        username: "rewieer",
+      }],
+      offline: {
+        friends: [{
+          id: 2,
+          username: "johndoe",
+        }, {
+          id: 3,
+          username: "janedoe",
+        }],
+        captain: {
+          id: 4,
+          username: "whocares",
+        }
+      }
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1, 2, 3, 4],
+        entities: {
+          "1": {
+            id: 1,
+            username: "rewieer",
+          },
+          "2": {
+            id: 2,
+            username: "johndoe",
+          },
+          "3": {
+            id: 3,
+            username: "janedoe",
+          },
+          "4": {
+            id: 4,
+            username: "whocares",
+          }
+        }
+      },
+    });
+  });
+  it("should normalized nested schemas with conflicts", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        },
+      },
+      routes: {
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users",
+          }
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("/users", {
+      online: [{
+        id: 1,
+        username: "rewieer",
+      }],
+      offline: {
+        friends: [{
+          id: 1,
+          username: "rewieer",
+        }, {
+          id: 2,
+          username: "johndoe",
+        }],
+        captain: {
+          id: 1,
+          username: "rewieer",
+        }
+      }
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1, 2],
+        entities: {
+          "1": {
+            id: 1,
+            username: "rewieer",
+          },
+          "2": {
+            id: 2,
+            username: "johndoe",
+          },
+        }
+      },
+    });
+  });
+  it("should recognize a route", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users/1": "users"
+      }
+    });
+
+    const normalized = normalizer.normalize("/users/1", {
       id: 1,
       name: "rewieer",
       photo: {
         id: 1,
         url: "https://someurl.com"
       }
-    }
-  ]);
+    });
 
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 1
-        }
-      }
-    },
-    photos: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
-
-it("should recognize a route with dynamic parameters", () => {
-  const normalizer = new Normalizer({
-    entities: {
+    expect(normalized).toEqual({
       users: {
-        photo: "photos"
-      }
-    },
-    routes: {
-      "/users/:id": "users"
-    }
-  });
-
-  const normalized = normalizer.normalize("/users/1", {
-    id: 1,
-    name: "rewieer",
-    photo: {
-      id: 1,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 1
-        }
-      }
-    },
-    photos: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
-
-it("should recognize a route with dynamic parameters and arguments", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        photo: "photos"
-      }
-    },
-    routes: {
-      "/users/:id": "users"
-    }
-  });
-
-  const normalized = normalizer.normalize("/users/1?foo=bar&key=stuff", {
-    id: 1,
-    name: "rewieer",
-    photo: {
-      id: 1,
-      url: "https://someurl.com"
-    }
-  });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 1
-        }
-      }
-    },
-    photos: {
-      ids: [1],
-      entities: {
-        "1": {
-          id: 1,
-          url: "https://someurl.com"
-        }
-      }
-    }
-  });
-});
-
-it("should recognize a specific return type and normalize it", () => {
-  const normalizer = new Normalizer({
-    entities: {
-      users: {
-        photo: "photos"
-      }
-    },
-    routes: {
-      "/users/:id": {
-        foo: {
-          bar: {
-            qux: "users"
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 1
           }
         }
-      }
-    }
-  });
-
-  const normalized = normalizer.normalize("/users/1?foo=bar&key=stuff", {
-    foo: {
-      bar: {
-        qux: {
-          id: 1,
-          name: "rewieer",
-          photo: {
+      },
+      photos: {
+        ids: [1],
+        entities: {
+          "1": {
             id: 1,
             url: "https://someurl.com"
           }
         }
       }
-    }
+    });
   });
-
-  expect(normalized).toEqual({
-    users: {
-      ids: [1],
+  it("should recognize a route with an array", () => {
+    const normalizer = new Normalizer({
       entities: {
-        "1": {
-          id: 1,
-          name: "rewieer",
-          photo: 1
+        users: {
+          photo: "photos"
         }
+      },
+      routes: {
+        "/users/1": "users"
       }
-    },
-    photos: {
-      ids: [1],
-      entities: {
-        "1": {
+    });
+
+    const normalized = normalizer.normalize("/users/1", [
+      {
+        id: 1,
+        name: "rewieer",
+        photo: {
           id: 1,
           url: "https://someurl.com"
         }
       }
-    }
+    ]);
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 1
+          }
+        }
+      },
+      photos: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    });
+  });
+  it("should recognize a route with dynamic parameters", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users/:id": "users"
+      }
+    });
+
+    const normalized = normalizer.normalize("/users/1", {
+      id: 1,
+      name: "rewieer",
+      photo: {
+        id: 1,
+        url: "https://someurl.com"
+      }
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 1
+          }
+        }
+      },
+      photos: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    });
+  });
+  it("should recognize a route with dynamic parameters and arguments", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users/:id": "users"
+      }
+    });
+
+    const normalized = normalizer.normalize("/users/1?foo=bar&key=stuff", {
+      id: 1,
+      name: "rewieer",
+      photo: {
+        id: 1,
+        url: "https://someurl.com"
+      }
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 1
+          }
+        }
+      },
+      photos: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    });
+  });
+  it("should recognize a specific return type and normalize it", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users/:id": {
+          foo: {
+            bar: {
+              qux: "users"
+            }
+          }
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("/users/1?foo=bar&key=stuff", {
+      foo: {
+        bar: {
+          qux: {
+            id: 1,
+            name: "rewieer",
+            photo: {
+              id: 1,
+              url: "https://someurl.com"
+            }
+          }
+        }
+      }
+    });
+
+    expect(normalized).toEqual({
+      users: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            name: "rewieer",
+            photo: 1
+          }
+        }
+      },
+      photos: {
+        ids: [1],
+        entities: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    });
+  });
+});
+
+describe('reconstruction', () => {
+  it("should provide reconstruction for a route", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: null,
+      },
+      routes: {
+        "/users/:id": "users",
+      }
+    });
+
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([{
+      path: null,
+      schema: "users",
+      isArray: false,
+    }]);
+  });
+  it("should provide reconstruction for a route with an array schema", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: null,
+      },
+      routes: {
+        "/users/:id": ["users"],
+      }
+    });
+
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([{
+      path: null,
+      schema: "users",
+      isArray: true,
+    }]);
+  });
+  it("should provide reconstruction for a route with one deep schema", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: null,
+      },
+      routes: {
+        "/users/:id": {
+          foo: {
+            bar: {
+              qux: "users"
+            },
+          }
+        },
+      }
+    });
+
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([
+      {
+        path: "foo.bar.qux",
+        schema: "users",
+        isArray: false,
+      },
+    ]);
+  });
+  it("should provide reconstruction for a route with multiple deep schemas", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: null,
+      },
+      routes: {
+        "/users/:id": {
+          foo: {
+            bar: {
+              qux: "users"
+            },
+            baz: {
+              qux: ["users"],
+            }
+          }
+        },
+      }
+    });
+
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([
+      {
+        path: "foo.bar.qux",
+        schema: "users",
+        isArray: false,
+      },
+      {
+        path: "foo.baz.qux",
+        schema: "users",
+        isArray: true,
+      }
+    ]);
   });
 });

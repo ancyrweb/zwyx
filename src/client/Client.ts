@@ -3,8 +3,9 @@ import { RawRequest, Request, ResponseInfo } from "./types";
 import Context from "./Context";
 import CacheManager from "./cache/CacheManager";
 import NoopCache from "./cache/NoopCache";
-import Normalizer, { Normalized } from "./normalizer/Normalizer";
+import Normalizer from "./normalizer/Normalizer";
 import extractRESTPath from "./utils/extractRESTPath";
+import { Normalized } from "./normalizer/NormalizationProcess";
 
 type ClientConfig = {
   links: Link[];
@@ -47,12 +48,18 @@ class Client {
     const raw: T = result.data;
     let normalized: Normalized<any> | null = null;
 
-    if (this.normalizer && typeof raw === "object" && raw !== null) {
+    if (this.normalizer && typeof raw === "object" && raw !== null && Object.keys(raw).length > 0) {
       normalized = this.normalizer.normalize(
         extractRESTPath(data.request.url),
         raw as any
       );
-      this.cacheManager.store(normalized);
+
+      this.cacheManager.store({
+        reconstructionInfo: this.normalizer.getReconstructionInfo(request.request.url),
+        response: raw,
+        normalized,
+        request,
+      });
     }
 
     return {
@@ -65,6 +72,7 @@ class Client {
   getCacheManager() {
     return this.cacheManager;
   }
+
   getCache() {
     return this.cacheManager.cache;
   }

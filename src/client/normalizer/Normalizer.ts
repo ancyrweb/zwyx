@@ -1,53 +1,39 @@
-import { normalize, schema } from "normalizr";
 import SchemaBuilder, { Schema } from "./SchemaBuilder";
+import NormalizationProcess, {LocalSchema, Normalized} from "./NormalizationProcess";
+import flatten from "../utils/flatten";
 
-export type LocalSchema = Record<string, schema.Entity>;
-type NestedRoute = Record<string, string | RouteObject>;
+type NestedRoute = Record<string, string | [string] | RouteObject>;
 interface RouteObject {
-  [x: string]: string | NestedRoute;
+  [x: string]: string | [string] | NestedRoute;
 }
-
-export type Route = string | NestedRoute;
+export type Route = string | [string] | NestedRoute;
 export type NormalizerConfig = {
   entities?: Schema;
   routes?: Record<string, Route>;
 };
 
-export type Normalized<K extends any> = Record<
-  string,
-  {
-    ids: string[] | number[];
-    entities: Record<string, K>;
-  }
->;
+export type ReconstructionInfo = {
+  schema: string
+  isArray: boolean
+  path: string | null,
+}
 
-const flatten = (arr: any[]) => {
-  let next = [];
-  for (let val of arr) {
-    if (Array.isArray(val)) {
-      for (let innerVal of val) {
-        next.push(innerVal);
-      }
-    } else {
-      next.push(val);
-    }
+const recursivelyBuildReconstructionPath = (obj: any, path: string = "") : ReconstructionInfo[] => {
+  const isArray = Array.isArray(obj);
+  if (typeof obj === "string" || Array.isArray(obj)) {
+    return [{
+      path,
+      schema: isArray ? obj[0] : obj,
+      isArray: isArray,
+    }];
   }
 
-  return next;
-};
-
-const mergeAllEntries = data => {
-  let out = {};
-  for (let row of data) {
-    for (let key in row) {
-      if (!out[key]) {
-        out[key] = row[key];
-      } else {
-        // TODO : deep merge, eventually check conflicts ?
-      }
-    }
+  let out = [];
+  for (let key in obj) {
+    out.push(recursivelyBuildReconstructionPath(obj[key], path + (path === "" ? "" : ".") + key))
   }
-  return out;
+
+  return flatten(out);
 };
 
 class Normalizer {
@@ -71,10 +57,6 @@ class Normalizer {
     this.idMapping = schemaBuilder.getMapping();
   }
 
-  findSchema(name: string) {
-    return this.schema[name] || null;
-  }
-
   findRoute(name: string) {
     if (this.routes[name]) return this.routes[name];
 
@@ -88,72 +70,41 @@ class Normalizer {
     return null;
   }
 
-  private deepNormalize<T extends any>(
-    dataMapping: any,
-    data: any
-  ): Normalized<T> {
-    let nextData = this.recursiveMapData(dataMapping, data);
-    return mergeAllEntries(nextData);
-  }
-
-  private recursiveMapData(dataMapping: any, data: any) {
-    let nextData = [];
-    for (let key in dataMapping) {
-      if (!data[key]) {
-        throw new Error("could not find " + key + " in data object");
-      }
-
-      if (typeof dataMapping[key] === "string") {
-        nextData.push(this.normalize(dataMapping[key], data[key]));
-      } else {
-        nextData.push(this.recursiveMapData(dataMapping[key], data[key]));
-      }
-    }
-
-    return flatten(nextData);
-  }
-
-  private doNormalize<T extends any>(data: any, schema: any): Normalized<T> {
-    const normalized = normalize(data, Array.isArray(data) ? [schema] : schema);
-
-    const out = {};
-    for (let key in normalized.entities) {
-      const idKey = this.idMapping[key] || "id";
-
-      const entities = normalized.entities[key];
-      let ids = Object.keys(entities).map(k => entities[k][idKey]);
-      out[key] = {
-        ids,
-        entities
-      };
-    }
-
-    return out;
-  }
-
-  safeGetSchema(name: string) {
-    const schema = this.findSchema(name);
-    if (!schema) {
-      throw new Error(
-        "Cannot normalize : entity name " + name + " doesn't exist."
-      );
-    }
-    return schema;
-  }
-
   normalize<T extends any>(
     entity: string,
     data: object | object[]
   ): Normalized<T> {
+    const normalizationProcess = new NormalizationProcess({
+      schema: this.schema,
+      idMapping: this.idMapping,
+    });
+
     const route = this.findRoute(entity);
-    if (route && typeof route === "object") {
-      return this.deepNormalize(route, data);
+    if (route && typeof route === "object" && Array.isArray(route) === false) {
+      return normalizationProcess.deepNormalize(route, data);
     }
 
-    return this.doNormalize(
+    return normalizationProcess.normalize(
+      route ? (route as string) : entity,
       data,
-      this.safeGetSchema(route ? (route as string) : entity)
     );
+  }
+
+  getReconstructionInfo(routeName: string) : ReconstructionInfo[] {
+    const route = this.findRoute(routeName);
+    if (!route)
+      return null;
+
+    const isArray = Array.isArray(route);
+    if (typeof route === "string" || isArray) {
+      return [{
+        path: null,
+        schema: isArray ? route[0] as string : route as string,
+        isArray,
+      }]
+    }
+
+    return recursivelyBuildReconstructionPath(route);
   }
 }
 

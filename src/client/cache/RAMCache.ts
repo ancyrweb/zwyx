@@ -11,6 +11,7 @@ type CacheEntry = {
 type Config = {
   ttl?: number;
 };
+
 class RAMCache implements CacheInterface {
   private cache: Record<string, CacheEntry> = {};
   private config: Config;
@@ -19,7 +20,7 @@ class RAMCache implements CacheInterface {
     this.config = config || {};
   }
 
-  set(name: string, value: any, config): Promise<void> {
+  set(name: string, value: any, config?: Config): Promise<void> {
     const ttl = (config && config.ttl) || this.config.ttl || 0;
     this.cache[name] = {
       config: {
@@ -62,15 +63,33 @@ class RAMCache implements CacheInterface {
     return Promise.resolve();
   }
 
-  merge(data: Record<string, any>) {
+  merge(data: Record<string, any>, config?: Config) {
+    const ttl = (config && config.ttl) || this.config.ttl || 0;
+
+    const toAppend = {};
+    Object.keys(data).forEach(key => {
+      toAppend[key] = {
+        config: {
+          ttl,
+          createdAt: new Date()
+        },
+        value: data[key],
+      }
+    });
+
     this.cache = {
       ...this.cache,
-      ...data
+      ...toAppend
     };
   }
 
   all<T extends any>(): Promise<Record<string, T>> {
-    return Promise.resolve(this.cache) as any;
+    const out = {};
+    Object.keys(this.cache).forEach(key => {
+      out[key] = this.cache[key].value;
+    });
+
+    return Promise.resolve(out) as any;
   }
 }
 
