@@ -48,17 +48,24 @@ class Client {
     const raw: T = result.data;
     let normalized: Normalized<any> | null = null;
 
-    if (this.normalizer && typeof raw === "object" && raw !== null && Object.keys(raw).length > 0) {
+    if (
+      this.normalizer &&
+      typeof raw === "object" &&
+      raw !== null &&
+      Object.keys(raw).length > 0
+    ) {
       normalized = this.normalizer.normalize(
         extractRESTPath(data.request.url),
         raw as any
       );
 
       this.cacheManager.store({
-        reconstructionInfo: this.normalizer.getReconstructionInfo(request.request.url),
+        reconstructionInfo: this.normalizer.getReconstructionInfo(
+          request.request.url
+        ),
         response: raw,
         normalized,
-        request,
+        request
       });
     }
 

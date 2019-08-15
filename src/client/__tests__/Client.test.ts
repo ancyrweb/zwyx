@@ -31,7 +31,6 @@ it("should create a client", async () => {
     }
   });
 });
-
 it("should fetch and normalize a single data in the cache", async () => {
   const fakeFetch = createFakeFetch({
     response: {
@@ -86,23 +85,30 @@ it("should fetch and normalize a single data in the cache", async () => {
       ]
     },
     data: {
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             username: "rewieer",
             photos: [1]
-          },
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+          }
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
-          },
+          }
         }
       }
     },
@@ -122,7 +128,7 @@ it("should fetch and normalize a single data in the cache", async () => {
       id: 1,
       url: "https://someurl.com"
     },
-    "{\"url\":\"https://someurl.com/users/1\",\"method\":\"GET\"}": 1,
+    '{"url":"https://someurl.com/users/1","method":"GET"}': 1
   });
 });
 it("should fetch and normalize an array of data in the cache", async () => {
@@ -211,9 +217,19 @@ it("should fetch and normalize an array of data in the cache", async () => {
       }
     ],
     data: {
-      users: {
-        ids: [1, 2],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1, 2],
+          isArray: true
+        }
+      },
+      ids: {
+        users: [1, 2],
+        photos: [1, 2, 3]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             username: "rewieer",
@@ -224,11 +240,8 @@ it("should fetch and normalize an array of data in the cache", async () => {
             username: "johndoe",
             photos: [2, 3]
           }
-        }
-      },
-      photos: {
-        ids: [1, 2, 3],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -273,7 +286,7 @@ it("should fetch and normalize an array of data in the cache", async () => {
       id: 3,
       url: "https://someurl.com"
     },
-    "{\"url\":\"https://someurl.com/users\",\"method\":\"GET\"}": [1, 2],
+    '{"url":"https://someurl.com/users","method":"GET"}': [1, 2]
   });
 });
 it("should fetch and normalize when an empty object is returned", async () => {
@@ -364,24 +377,29 @@ it("should fetch and normalize an empty array of data in the cache", async () =>
 
   expect(await client.getCache().all()).toEqual({});
 });
-it.only("should fetch and normalize a complex structure of data", async () => {
+it("should fetch and normalize a complex structure of data", async () => {
   const fakeFetch = createFakeFetch({
     response: {
-      online: [{
-        id: 1,
-        username: "rewieer",
-      }],
+      online: [
+        {
+          id: 1,
+          username: "rewieer"
+        }
+      ],
       offline: {
-        friends: [{
-          id: 2,
-          username: "johndoe",
-        }, {
-          id: 3,
-          username: "janedoe",
-        }],
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
         captain: {
           id: 4,
-          username: "whocares",
+          username: "whocares"
         }
       }
     }
@@ -407,7 +425,7 @@ it.only("should fetch and normalize a complex structure of data", async () => {
           online: ["users"],
           offline: {
             friends: ["users"],
-            captain: "users",
+            captain: "users"
           }
         }
       }
@@ -423,46 +441,70 @@ it.only("should fetch and normalize a complex structure of data", async () => {
 
   expect(result).toEqual({
     raw: {
-      online: [{
-        id: 1,
-        username: "rewieer",
-      }],
+      online: [
+        {
+          id: 1,
+          username: "rewieer"
+        }
+      ],
       offline: {
-        friends: [{
-          id: 2,
-          username: "johndoe",
-        }, {
-          id: 3,
-          username: "janedoe",
-        }],
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
         captain: {
           id: 4,
-          username: "whocares",
+          username: "whocares"
         }
       }
     },
     data: {
-      users: {
-        ids: [1, 2, 3, 4],
-        entities: {
+      pathIds: {
+        online: {
+          schema: "users",
+          values: [1],
+          isArray: true
+        },
+        "offline.friends": {
+          schema: "users",
+          values: [2, 3],
+          isArray: true
+        },
+        "offline.captain": {
+          schema: "users",
+          values: [4],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1, 2, 3, 4]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
-            username: "rewieer",
+            username: "rewieer"
           },
           "2": {
             id: 2,
-            username: "johndoe",
+            username: "johndoe"
           },
           "3": {
             id: 3,
-            username: "janedoe",
+            username: "janedoe"
           },
           "4": {
             id: 4,
-            username: "whocares",
+            username: "whocares"
           }
         }
-      },
+      }
     },
     info: {
       headers: {},
@@ -473,25 +515,25 @@ it.only("should fetch and normalize a complex structure of data", async () => {
   expect(await client.getCache().all()).toEqual({
     "users:1": {
       id: 1,
-      username: "rewieer",
+      username: "rewieer"
     },
     "users:2": {
       id: 2,
-      username: "johndoe",
+      username: "johndoe"
     },
     "users:3": {
       id: 3,
-      username: "janedoe",
+      username: "janedoe"
     },
     "users:4": {
       id: 4,
-      username: "whocares",
+      username: "whocares"
     },
-    "{\"url\":\"https://someurl.com/users\",\"method\":\"GET\"}": {
+    '{"url":"https://someurl.com/users","method":"GET"}': {
       online: [1],
       offline: {
         friends: [2, 3],
-        captain: 4,
+        captain: 4
       }
     }
   });

@@ -1,5 +1,8 @@
 import SchemaBuilder, { Schema } from "./SchemaBuilder";
-import NormalizationProcess, {LocalSchema, Normalized} from "./NormalizationProcess";
+import NormalizationProcess, {
+  LocalSchema,
+  Normalized
+} from "./NormalizationProcess";
 import flatten from "../utils/flatten";
 
 type NestedRoute = Record<string, string | [string] | RouteObject>;
@@ -13,24 +16,34 @@ export type NormalizerConfig = {
 };
 
 export type ReconstructionInfo = {
-  schema: string
-  isArray: boolean
-  path: string | null,
-}
+  schema: string;
+  isArray: boolean;
+  path: string | null;
+};
 
-const recursivelyBuildReconstructionPath = (obj: any, path: string = "") : ReconstructionInfo[] => {
+const recursivelyBuildReconstructionPath = (
+  obj: any,
+  path: string = ""
+): ReconstructionInfo[] => {
   const isArray = Array.isArray(obj);
   if (typeof obj === "string" || Array.isArray(obj)) {
-    return [{
-      path,
-      schema: isArray ? obj[0] : obj,
-      isArray: isArray,
-    }];
+    return [
+      {
+        path,
+        schema: isArray ? obj[0] : obj,
+        isArray: isArray
+      }
+    ];
   }
 
   let out = [];
   for (let key in obj) {
-    out.push(recursivelyBuildReconstructionPath(obj[key], path + (path === "" ? "" : ".") + key))
+    out.push(
+      recursivelyBuildReconstructionPath(
+        obj[key],
+        path + (path === "" ? "" : ".") + key
+      )
+    );
   }
 
   return flatten(out);
@@ -76,7 +89,7 @@ class Normalizer {
   ): Normalized<T> {
     const normalizationProcess = new NormalizationProcess({
       schema: this.schema,
-      idMapping: this.idMapping,
+      idMapping: this.idMapping
     });
 
     const route = this.findRoute(entity);
@@ -86,22 +99,23 @@ class Normalizer {
 
     return normalizationProcess.normalize(
       route ? (route as string) : entity,
-      data,
-    );
+      data
+    ) as any;
   }
 
-  getReconstructionInfo(routeName: string) : ReconstructionInfo[] {
+  getReconstructionInfo(routeName: string): ReconstructionInfo[] {
     const route = this.findRoute(routeName);
-    if (!route)
-      return null;
+    if (!route) return null;
 
     const isArray = Array.isArray(route);
     if (typeof route === "string" || isArray) {
-      return [{
-        path: null,
-        schema: isArray ? route[0] as string : route as string,
-        isArray,
-      }]
+      return [
+        {
+          path: null,
+          schema: isArray ? (route[0] as string) : (route as string),
+          isArray
+        }
+      ];
     }
 
     return recursivelyBuildReconstructionPath(route);

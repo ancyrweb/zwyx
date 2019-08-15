@@ -73,8 +73,8 @@ class RAMCache implements CacheInterface {
           ttl,
           createdAt: new Date()
         },
-        value: data[key],
-      }
+        value: data[key]
+      };
     });
 
     this.cache = {

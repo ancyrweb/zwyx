@@ -1,6 +1,6 @@
 import Normalizer from "../Normalizer";
 
-describe('normalization', () => {
+describe("normalization", () => {
   it("should normalize data", () => {
     const normalizer = new Normalizer({
       entities: {
@@ -20,19 +20,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [2]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 2
           }
-        }
-      },
-      photos: {
-        ids: [2],
-        entities: {
+        },
+        photos: {
           "2": {
             id: 2,
             url: "https://someurl.com"
@@ -66,19 +73,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1, 2]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photos: [1, 2]
           }
-        }
-      },
-      photos: {
-        ids: [1, 2],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -120,9 +134,19 @@ describe('normalization', () => {
     ]);
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1, 2],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1, 2],
+          isArray: true
+        }
+      },
+      ids: {
+        users: [1, 2],
+        photos: [2, 4]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
@@ -133,11 +157,8 @@ describe('normalization', () => {
             name: "johndoe",
             photo: 4
           }
-        }
-      },
-      photos: {
-        ids: [2, 4],
-        entities: {
+        },
+        photos: {
           "2": {
             id: 2,
             url: "https://someurl.com"
@@ -170,19 +191,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [2]
+      },
+      entities: {
+        users: {
           "1": {
             user_id: 1,
             name: "rewieer",
             photo: 2
           }
-        }
-      },
-      photos: {
-        ids: [2],
-        entities: {
+        },
+        photos: {
           "2": {
             id: 2,
             url: "https://someurl.com"
@@ -214,141 +242,32 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [2]
+      },
+      entities: {
+        users: {
           "1": {
             user_id: 1,
             name: "rewieer",
             photo: 2
           }
-        }
-      },
-      photos: {
-        ids: [2],
-        entities: {
+        },
+        photos: {
           "2": {
             photo_id: 2,
             url: "https://someurl.com"
           }
         }
       }
-    });
-  });
-  it("should normalize more complicated nested schemas", () => {
-    const normalizer = new Normalizer({
-      entities: {
-        users: {
-          photo: "photos"
-        },
-      },
-      routes: {
-        "/users": {
-          online: ["users"],
-          offline: {
-            friends: ["users"],
-            captain: "users",
-          }
-        }
-      }
-    });
-
-    const normalized = normalizer.normalize("/users", {
-      online: [{
-        id: 1,
-        username: "rewieer",
-      }],
-      offline: {
-        friends: [{
-          id: 2,
-          username: "johndoe",
-        }, {
-          id: 3,
-          username: "janedoe",
-        }],
-        captain: {
-          id: 4,
-          username: "whocares",
-        }
-      }
-    });
-
-    expect(normalized).toEqual({
-      users: {
-        ids: [1, 2, 3, 4],
-        entities: {
-          "1": {
-            id: 1,
-            username: "rewieer",
-          },
-          "2": {
-            id: 2,
-            username: "johndoe",
-          },
-          "3": {
-            id: 3,
-            username: "janedoe",
-          },
-          "4": {
-            id: 4,
-            username: "whocares",
-          }
-        }
-      },
-    });
-  });
-  it("should normalized nested schemas with conflicts", () => {
-    const normalizer = new Normalizer({
-      entities: {
-        users: {
-          photo: "photos"
-        },
-      },
-      routes: {
-        "/users": {
-          online: ["users"],
-          offline: {
-            friends: ["users"],
-            captain: "users",
-          }
-        }
-      }
-    });
-
-    const normalized = normalizer.normalize("/users", {
-      online: [{
-        id: 1,
-        username: "rewieer",
-      }],
-      offline: {
-        friends: [{
-          id: 1,
-          username: "rewieer",
-        }, {
-          id: 2,
-          username: "johndoe",
-        }],
-        captain: {
-          id: 1,
-          username: "rewieer",
-        }
-      }
-    });
-
-    expect(normalized).toEqual({
-      users: {
-        ids: [1, 2],
-        entities: {
-          "1": {
-            id: 1,
-            username: "rewieer",
-          },
-          "2": {
-            id: 2,
-            username: "johndoe",
-          },
-        }
-      },
     });
   });
   it("should recognize a route", () => {
@@ -373,19 +292,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 1
           }
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -402,7 +328,7 @@ describe('normalization', () => {
         }
       },
       routes: {
-        "/users/1": "users"
+        "/users/1": ["users"]
       }
     });
 
@@ -418,19 +344,26 @@ describe('normalization', () => {
     ]);
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: true
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 1
           }
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -461,19 +394,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 1
           }
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -504,19 +444,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 1
           }
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -559,19 +506,26 @@ describe('normalization', () => {
     });
 
     expect(normalized).toEqual({
-      users: {
-        ids: [1],
-        entities: {
+      pathIds: {
+        "foo.bar.qux": {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
           "1": {
             id: 1,
             name: "rewieer",
             photo: 1
           }
-        }
-      },
-      photos: {
-        ids: [1],
-        entities: {
+        },
+        photos: {
           "1": {
             id: 1,
             url: "https://someurl.com"
@@ -580,54 +534,222 @@ describe('normalization', () => {
       }
     });
   });
-});
-
-describe('reconstruction', () => {
-  it("should provide reconstruction for a route", () => {
+  it("should normalize a specific return type that's more complex", () => {
     const normalizer = new Normalizer({
       entities: {
-        users: null,
+        users: {
+          photo: "photos"
+        }
       },
       routes: {
-        "/users/:id": "users",
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users"
+          }
+        }
       }
     });
 
-    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([{
-      path: null,
-      schema: "users",
-      isArray: false,
-    }]);
+    const normalized = normalizer.normalize("/users", {
+      online: [
+        {
+          id: 1,
+          username: "rewieer"
+        }
+      ],
+      offline: {
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
+        captain: {
+          id: 4,
+          username: "whocares"
+        }
+      }
+    });
+
+    expect(normalized).toEqual({
+      pathIds: {
+        online: {
+          schema: "users",
+          values: [1],
+          isArray: true
+        },
+        "offline.friends": {
+          schema: "users",
+          values: [2, 3],
+          isArray: true
+        },
+        "offline.captain": {
+          schema: "users",
+          values: [4],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1, 2, 3, 4]
+      },
+      entities: {
+        users: {
+          "1": {
+            id: 1,
+            username: "rewieer"
+          },
+          "2": {
+            id: 2,
+            username: "johndoe"
+          },
+          "3": {
+            id: 3,
+            username: "janedoe"
+          },
+          "4": {
+            id: 4,
+            username: "whocares"
+          }
+        }
+      }
+    });
+  });
+  it("should normalized nested schemas with conflicts", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users"
+          }
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("/users", {
+      online: [
+        {
+          id: 1,
+          username: "rewieer"
+        }
+      ],
+      offline: {
+        friends: [
+          {
+            id: 1,
+            username: "rewieer"
+          },
+          {
+            id: 2,
+            username: "johndoe"
+          }
+        ],
+        captain: {
+          id: 1,
+          username: "rewieer"
+        }
+      }
+    });
+
+    expect(normalized).toEqual({
+      pathIds: {
+        online: {
+          schema: "users",
+          values: [1],
+          isArray: true
+        },
+        "offline.friends": {
+          schema: "users",
+          values: [1, 2],
+          isArray: true
+        },
+        "offline.captain": {
+          schema: "users",
+          values: [1],
+          isArray: false
+        }
+      },
+      ids: {
+        users: [1, 2]
+      },
+      entities: {
+        users: {
+          "1": {
+            id: 1,
+            username: "rewieer"
+          },
+          "2": {
+            id: 2,
+            username: "johndoe"
+          }
+        }
+      }
+    });
+  });
+});
+
+describe("reconstruction", () => {
+  it("should provide reconstruction for a route", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: null
+      },
+      routes: {
+        "/users/:id": "users"
+      }
+    });
+
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([
+      {
+        path: null,
+        schema: "users",
+        isArray: false
+      }
+    ]);
   });
   it("should provide reconstruction for a route with an array schema", () => {
     const normalizer = new Normalizer({
       entities: {
-        users: null,
+        users: null
       },
       routes: {
-        "/users/:id": ["users"],
+        "/users/:id": ["users"]
       }
     });
 
-    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([{
-      path: null,
-      schema: "users",
-      isArray: true,
-    }]);
+    expect(normalizer.getReconstructionInfo("/users/3")).toEqual([
+      {
+        path: null,
+        schema: "users",
+        isArray: true
+      }
+    ]);
   });
   it("should provide reconstruction for a route with one deep schema", () => {
     const normalizer = new Normalizer({
       entities: {
-        users: null,
+        users: null
       },
       routes: {
         "/users/:id": {
           foo: {
             bar: {
               qux: "users"
-            },
+            }
           }
-        },
+        }
       }
     });
 
@@ -635,14 +757,14 @@ describe('reconstruction', () => {
       {
         path: "foo.bar.qux",
         schema: "users",
-        isArray: false,
-      },
+        isArray: false
+      }
     ]);
   });
   it("should provide reconstruction for a route with multiple deep schemas", () => {
     const normalizer = new Normalizer({
       entities: {
-        users: null,
+        users: null
       },
       routes: {
         "/users/:id": {
@@ -651,10 +773,10 @@ describe('reconstruction', () => {
               qux: "users"
             },
             baz: {
-              qux: ["users"],
+              qux: ["users"]
             }
           }
-        },
+        }
       }
     });
 
@@ -662,12 +784,12 @@ describe('reconstruction', () => {
       {
         path: "foo.bar.qux",
         schema: "users",
-        isArray: false,
+        isArray: false
       },
       {
         path: "foo.baz.qux",
         schema: "users",
-        isArray: true,
+        isArray: true
       }
     ]);
   });
