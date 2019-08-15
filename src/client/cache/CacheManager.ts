@@ -4,10 +4,8 @@ import {
   Normalized,
   NormalizedPathIDs
 } from "../normalizer/NormalizationProcess";
-import { ReconstructionInfo } from "../normalizer/Normalizer";
 
 type StoreConfig = {
-  reconstructionInfo: ReconstructionInfo[];
   request: Request;
   response: any;
   normalized: Normalized<any>;
@@ -38,6 +36,10 @@ const deflatePathIds = (pathIds: NormalizedPathIDs) => {
   return obj;
 };
 
+/**
+ * Higher-level class to manage the cache.
+ * It handles the various events that occur and operate directly on the cache.
+ */
 class CacheManager {
   public cache: CacheInterface;
 
@@ -45,10 +47,13 @@ class CacheManager {
     this.cache = config.cache;
   }
 
+  /**
+   * Store the normalized data into the cache
+   * @param config
+   */
   store(config: StoreConfig) {
     const normalized = config.normalized;
     const request = config.request.request;
-    const reconstructionInfo = config.reconstructionInfo;
 
     let toMerge = {};
     for (let entityName in normalized.entities) {
@@ -57,20 +62,20 @@ class CacheManager {
       }
     }
 
+    // We cache the result of cacheable requests like GET
     if (request.method === "GET") {
-      // We cache the result of the query
-      let toMergeUnderRequestName = null;
-      const shouldBuildObjectTree = reconstructionInfo.some(
-        x => x.path !== null
-      );
+      let toMergeUnderRequestName;
+
+      // If we don't have a root path, then we have various paths
+      const shouldBuildObjectTree = normalized.pathIds.$root === undefined;
+
       if (shouldBuildObjectTree) {
         toMergeUnderRequestName = deflatePathIds(normalized.pathIds);
       } else {
-        const currentReconstructionInfo = reconstructionInfo[0];
-        const ids = normalized.ids[currentReconstructionInfo.schema];
+        const ids = normalized.ids[normalized.pathIds.$root.schema];
 
         if (ids.length > 1) {
-          if (currentReconstructionInfo.isArray === false) {
+          if (normalized.pathIds.$root.isArray === false) {
             console.warn(
               "The route " +
                 request.url +
@@ -84,15 +89,13 @@ class CacheManager {
         }
       }
 
-      if (toMergeUnderRequestName) {
-        const serializedName = JSON.stringify({
-          url: request.url,
-          method: request.method,
-          headers: request.headers
-        });
+      const serializedName = JSON.stringify({
+        url: request.url,
+        method: request.method,
+        headers: request.headers
+      });
 
-        toMerge[serializedName] = toMergeUnderRequestName;
-      }
+      toMerge[serializedName] = toMergeUnderRequestName;
     }
 
     this.cache.merge(toMerge);
