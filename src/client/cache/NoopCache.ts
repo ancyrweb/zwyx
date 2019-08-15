@@ -1,6 +1,8 @@
-import CacheInterface, { SetCacheConfig } from "./CacheInterface";
+import SubscribeableCacheInterface, {
+  SetCacheConfig
+} from "./SubscribeableCacheInterface";
 
-class NoopCache implements CacheInterface {
+class NoopCache implements SubscribeableCacheInterface {
   set(name: string, value: any, config): Promise<void> {
     return Promise.resolve();
   }
@@ -23,6 +25,10 @@ class NoopCache implements CacheInterface {
 
   all<T extends any>(): Promise<Record<string, T>> {
     return Promise.resolve(null);
+  }
+
+  subscribe(keys: string, CacheListener): Function {
+    return () => {};
   }
 }
 

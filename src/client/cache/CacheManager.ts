@@ -1,4 +1,4 @@
-import CacheInterface from "./CacheInterface";
+import SubscribeableCacheInterface from "./SubscribeableCacheInterface";
 import { Request } from "../types";
 import {
   Normalized,
@@ -41,9 +41,9 @@ const deflatePathIds = (pathIds: NormalizedPathIDs) => {
  * It handles the various events that occur and operate directly on the cache.
  */
 class CacheManager {
-  public cache: CacheInterface;
+  public cache: SubscribeableCacheInterface;
 
-  constructor(config: { cache: CacheInterface }) {
+  constructor(config: { cache: SubscribeableCacheInterface }) {
     this.cache = config.cache;
   }
 
