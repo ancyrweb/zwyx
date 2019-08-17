@@ -1,4 +1,4 @@
-import * as Observable from "zen-observable";
+import Observable from "zen-observable";
 import { RawRequest, Response } from "../types";
 
 export type HttpFetch = (url: string, data: any) => Promise<any>;

@@ -1,5 +1,5 @@
 import LinkChain from "../LinkChain";
-import * as Observable from "zen-observable";
+import Observable from "zen-observable";
 
 it("should refuse an empty list of links", () => {
   expect(() => {

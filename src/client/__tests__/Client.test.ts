@@ -28,7 +28,8 @@ it("should create a client", async () => {
     info: {
       headers: {},
       status: 200
-    }
+    },
+    cache: null
   });
 });
 it("should fetch and normalize a single data in the cache", async () => {
@@ -115,6 +116,9 @@ it("should fetch and normalize a single data in the cache", async () => {
     info: {
       headers: {},
       status: 200
+    },
+    cache: {
+      requestCacheKey: '{"url":"https://someurl.com/users/1","method":"GET"}'
     }
   });
 
@@ -260,6 +264,9 @@ it("should fetch and normalize an array of data in the cache", async () => {
     info: {
       headers: {},
       status: 200
+    },
+    cache: {
+      requestCacheKey: '{"url":"https://someurl.com/users","method":"GET"}'
     }
   });
 
@@ -328,7 +335,8 @@ it("should fetch and normalize when an empty object is returned", async () => {
     info: {
       headers: {},
       status: 200
-    }
+    },
+    cache: null
   });
 
   expect(await client.getCache().all()).toEqual({});
@@ -372,7 +380,8 @@ it("should fetch and normalize an empty array of data in the cache", async () =>
     info: {
       headers: {},
       status: 200
-    }
+    },
+    cache: null
   });
 
   expect(await client.getCache().all()).toEqual({});
@@ -509,6 +518,9 @@ it("should fetch and normalize a complex structure of data", async () => {
     info: {
       headers: {},
       status: 200
+    },
+    cache: {
+      requestCacheKey: '{"url":"https://someurl.com/users","method":"GET"}'
     }
   });
 

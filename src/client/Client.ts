@@ -1,7 +1,7 @@
 import LinkChain, { Link } from "./link/LinkChain";
 import { RawRequest, Request, ResponseInfo } from "./types";
 import Context from "./Context";
-import CacheManager from "./cache/CacheManager";
+import CacheManager, { StoreResult } from "./cache/CacheManager";
 import NoopCache from "./cache/NoopCache";
 import Normalizer from "./normalizer/Normalizer";
 import extractRESTPath from "./utils/extractRESTPath";
@@ -17,6 +17,7 @@ type Response<T extends any> = {
   raw: T;
   data: object;
   info: ResponseInfo;
+  cache: StoreResult | null;
 };
 
 class Client {
@@ -35,6 +36,7 @@ class Client {
   }
 
   async emit<T extends any>(data: Request): Promise<Response<T>> {
+    let cacheResult: StoreResult | null = null;
     if (!data.request.method) {
       data.request.method = "GET";
     }
@@ -60,7 +62,7 @@ class Client {
         raw as any
       );
 
-      this.cacheManager.store({
+      cacheResult = this.cacheManager.store({
         response: raw,
         normalized,
         request
@@ -70,7 +72,8 @@ class Client {
     return {
       info: result.info,
       data: normalized,
-      raw
+      raw,
+      cache: cacheResult
     };
   }
 

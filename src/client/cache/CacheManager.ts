@@ -4,21 +4,16 @@ import {
   Normalized,
   NormalizedPathIDs
 } from "../normalizer/NormalizationProcess";
+import deepSet from "../utils/deepSet";
 
-type StoreConfig = {
+export type StoreConfig = {
   request: Request;
   response: any;
   normalized: Normalized<any>;
 };
 
-const deepSet = (obj: object, path: string | string[], val: any) => {
-  if (typeof path === "string") path = path.split(".");
-
-  if (path.length === 0) return val;
-
-  const next = path.shift();
-  obj[next] = deepSet(obj[next] || {}, path, val);
-  return obj;
+export type StoreResult = {
+  requestCacheKey: string | null;
 };
 
 const deflatePathIds = (pathIds: NormalizedPathIDs) => {
@@ -51,14 +46,17 @@ class CacheManager {
    * Store the normalized data into the cache
    * @param config
    */
-  store(config: StoreConfig) {
+  store(config: StoreConfig): StoreResult {
     const normalized = config.normalized;
     const request = config.request.request;
 
-    let toMerge = {};
+    let toCache = {};
+    let requestCacheKey = null;
+
+    // We cache all the entities by default
     for (let entityName in normalized.entities) {
       for (let id in normalized.entities[entityName]) {
-        toMerge[entityName + ":" + id] = normalized.entities[entityName][id];
+        toCache[entityName + ":" + id] = normalized.entities[entityName][id];
       }
     }
 
@@ -89,16 +87,19 @@ class CacheManager {
         }
       }
 
-      const serializedName = JSON.stringify({
+      requestCacheKey = JSON.stringify({
         url: request.url,
         method: request.method,
         headers: request.headers
       });
 
-      toMerge[serializedName] = toMergeUnderRequestName;
+      toCache[requestCacheKey] = toMergeUnderRequestName;
     }
 
-    this.cache.merge(toMerge);
+    this.cache.merge(toCache);
+    return {
+      requestCacheKey
+    };
   }
 }
 
