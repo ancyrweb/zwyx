@@ -24,7 +24,7 @@ class RAMCache implements SubscribeableCacheInterface {
     this.subscriptions = {};
   }
 
-  set(name: string, value: any, config?: Config): Promise<void> {
+  set(name: string, value: any, config?: Config): void {
     const ttl = (config && config.ttl) || this.config.ttl || 0;
     this.cache[name] = {
       config: {
@@ -35,12 +35,11 @@ class RAMCache implements SubscribeableCacheInterface {
     };
 
     this.notifyForKeys([name]);
-    return Promise.resolve();
   }
 
-  get<T extends any>(name: string): Promise<T | null> {
+  get<T extends any>(name: string): T | null {
     if (!this.cache[name]) {
-      return Promise.resolve(null);
+      return null;
     }
 
     const entry = this.cache[name];
@@ -52,21 +51,21 @@ class RAMCache implements SubscribeableCacheInterface {
       );
       if (delta > entry.config.ttl) {
         delete this.cache[name];
-        return Promise.resolve(null);
+        return null;
       }
     }
 
-    return Promise.resolve(entry.value);
+    return entry.value;
   }
 
   remove(name: string): Promise<void> {
     delete this.cache[name];
-    return Promise.resolve();
+    return;
   }
 
   clear(): Promise<void> {
     this.cache = {};
-    return Promise.resolve();
+    return;
   }
 
   merge(data: Record<string, any>, config?: Config) {
@@ -91,13 +90,13 @@ class RAMCache implements SubscribeableCacheInterface {
     this.notifyForKeys(Object.keys(data));
   }
 
-  all<T extends any>(): Promise<Record<string, T>> {
+  all<T extends any>(): Record<string, T> {
     const out = {};
     Object.keys(this.cache).forEach(key => {
       out[key] = this.cache[key].value;
     });
 
-    return Promise.resolve(out) as any;
+    return out;
   }
 
   subscribe(keys: string[] | string, listener: CacheListener): Function {

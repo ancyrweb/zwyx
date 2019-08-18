@@ -698,6 +698,76 @@ describe("normalization", () => {
       }
     });
   });
+  it("should normalize complex schema with empty arrays and null", () => {
+    const normalizer = new Normalizer({
+      entities: {
+        users: {
+          photo: "photos"
+        }
+      },
+      routes: {
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users"
+          }
+        }
+      }
+    });
+
+    const normalized = normalizer.normalize("/users", {
+      online: [],
+      offline: {
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
+        captain: null
+      }
+    });
+
+    expect(normalized).toEqual({
+      pathIds: {
+        online: {
+          schema: "users",
+          values: [],
+          isArray: true
+        },
+        "offline.friends": {
+          schema: "users",
+          values: [2, 3],
+          isArray: true
+        },
+        "offline.captain": {
+          schema: "users",
+          values: null,
+          isArray: false
+        }
+      },
+      ids: {
+        users: [2, 3]
+      },
+      entities: {
+        users: {
+          "2": {
+            id: 2,
+            username: "johndoe"
+          },
+          "3": {
+            id: 3,
+            username: "janedoe"
+          }
+        }
+      }
+    });
+  });
 });
 
 describe("reconstruction", () => {

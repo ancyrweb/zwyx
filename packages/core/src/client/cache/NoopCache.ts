@@ -3,31 +3,31 @@ import SubscribeableCacheInterface, {
 } from "./SubscribeableCacheInterface";
 
 class NoopCache implements SubscribeableCacheInterface {
-  set(name: string, value: any, config): Promise<void> {
-    return Promise.resolve();
+  set(name: string, value: any, config): void {
+    return;
   }
 
-  get<T extends any>(name: string): Promise<T | null> {
-    return Promise.resolve(null);
+  get<T extends any>(name: string): T | null {
+    return null;
   }
 
   remove(name: string): Promise<void> {
-    return Promise.resolve();
+    return;
   }
 
   clear(): Promise<void> {
-    return Promise.resolve();
+    return;
   }
 
   merge(data: Record<string, any>) {
-    return Promise.resolve();
+    return;
   }
 
-  all<T extends any>(): Promise<Record<string, T>> {
-    return Promise.resolve(null);
+  all<T extends any>(): Record<string, T> {
+    return null;
   }
 
-  subscribe(keys: string, CacheListener): Function {
+  subscribe(keys: string[] | string, CacheListener): Function {
     return () => {};
   }
 }

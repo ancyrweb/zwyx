@@ -78,7 +78,7 @@ class NormalizationProcess {
   private recursiveMapData(dataMapping: any, data: any, path: string = "") {
     let nextData = [];
     for (let key in dataMapping) {
-      if (!data[key]) {
+      if (typeof !data[key] === "undefined") {
         throw new Error("could not find " + key + " in data object");
       }
 
@@ -109,11 +109,32 @@ class NormalizationProcess {
     const canonicalSchemaName = isSchemaArray
       ? schemaName[0]
       : (schemaName as string);
+
+    if (data === null) {
+      return {
+        pathIds: {
+          [path]: {
+            schema: canonicalSchemaName,
+            isArray: false,
+            values: null
+          }
+        },
+        ids: {},
+        entities: {}
+      };
+    }
+
     const schema = this.safeGetSchema(canonicalSchemaName);
     const normalized = normalize(data, Array.isArray(data) ? [schema] : schema);
 
     const out: Normalized<any> = {
-      pathIds: {},
+      pathIds: {
+        [path]: {
+          schema: canonicalSchemaName,
+          values: [],
+          isArray: Array.isArray(data)
+        }
+      },
       ids: {},
       entities: {}
     };
@@ -125,20 +146,14 @@ class NormalizationProcess {
       out.ids[key] = ids;
       out.entities[key] = entities;
       if (canonicalSchemaName === key) {
-        out.pathIds[path] = {
-          schema: key,
-          values: ids,
-          isArray: Array.isArray(data)
-        };
+        out.pathIds[path].values = ids;
       }
     }
-
     return out;
   }
 
   deepNormalize<T extends any>(dataMapping: any, data: any): Normalized<T> {
-    let nextData = this.recursiveMapData(dataMapping, data);
-    return mergeAllEntries(nextData);
+    return mergeAllEntries(this.recursiveMapData(dataMapping, data));
   }
 }
 

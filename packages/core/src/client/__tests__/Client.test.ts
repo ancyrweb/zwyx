@@ -128,7 +128,12 @@ it("should fetch and normalize a single data in the cache", async () => {
       id: 1,
       url: "https://someurl.com"
     },
-    '{"url":"https://someurl.com/users/1","method":"GET"}': 1
+    '{"url":"https://someurl.com/users/1","method":"GET"}': {
+      $root: {
+        ids: 1,
+        schema: "users"
+      }
+    }
   });
 });
 it("should fetch and normalize an array of data in the cache", async () => {
@@ -286,7 +291,121 @@ it("should fetch and normalize an array of data in the cache", async () => {
       id: 3,
       url: "https://someurl.com"
     },
-    '{"url":"https://someurl.com/users","method":"GET"}': [1, 2]
+    '{"url":"https://someurl.com/users","method":"GET"}': {
+      $root: {
+        ids: [1, 2],
+        schema: "users"
+      }
+    }
+  });
+});
+it("should fetch and normalize an array of one entry in the cache", async () => {
+  const fakeFetch = createFakeFetch({
+    response: [
+      {
+        id: 1,
+        username: "rewieer",
+        photos: [
+          {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        ]
+      }
+    ]
+  });
+
+  const client = new Client({
+    links: [
+      createHttpLink({
+        fetch: fakeFetch
+      })
+    ],
+    cache: new CacheManager({
+      cache: new RAMCache()
+    }),
+    normalizer: new Normalizer({
+      entities: {
+        users: {
+          photos: ["photos"]
+        }
+      },
+      routes: {
+        "/users": ["users"]
+      }
+    })
+  });
+
+  const result = await client.emit({
+    request: {
+      url: "https://someurl.com/users",
+      method: "GET"
+    }
+  });
+
+  expect(result).toEqual({
+    raw: [
+      {
+        id: 1,
+        username: "rewieer",
+        photos: [
+          {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        ]
+      }
+    ],
+    data: {
+      pathIds: {
+        $root: {
+          schema: "users",
+          values: [1],
+          isArray: true
+        }
+      },
+      ids: {
+        users: [1],
+        photos: [1]
+      },
+      entities: {
+        users: {
+          "1": {
+            id: 1,
+            username: "rewieer",
+            photos: [1]
+          }
+        },
+        photos: {
+          "1": {
+            id: 1,
+            url: "https://someurl.com"
+          }
+        }
+      }
+    },
+    info: {
+      headers: {},
+      status: 200
+    }
+  });
+
+  expect(await client.getCache().all()).toEqual({
+    "users:1": {
+      id: 1,
+      username: "rewieer",
+      photos: [1]
+    },
+    "photos:1": {
+      id: 1,
+      url: "https://someurl.com"
+    },
+    '{"url":"https://someurl.com/users","method":"GET"}': {
+      $root: {
+        ids: [1],
+        schema: "users"
+      }
+    }
   });
 });
 it("should fetch and normalize when an empty object is returned", async () => {
@@ -530,10 +649,157 @@ it("should fetch and normalize a complex structure of data", async () => {
       username: "whocares"
     },
     '{"url":"https://someurl.com/users","method":"GET"}': {
-      online: [1],
+      online: {
+        ids: [1],
+        schema: "users"
+      },
       offline: {
-        friends: [2, 3],
-        captain: 4
+        friends: {
+          ids: [2, 3],
+          schema: "users"
+        },
+        captain: {
+          ids: 4,
+          schema: "users"
+        }
+      }
+    }
+  });
+});
+it("should fetch and normalize a complex structure of data containing empty values", async () => {
+  const fakeFetch = createFakeFetch({
+    response: {
+      online: [],
+      offline: {
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
+        captain: null
+      }
+    }
+  });
+
+  const client = new Client({
+    links: [
+      createHttpLink({
+        fetch: fakeFetch
+      })
+    ],
+    cache: new CacheManager({
+      cache: new RAMCache()
+    }),
+    normalizer: new Normalizer({
+      entities: {
+        users: {
+          photos: ["photos"]
+        }
+      },
+      routes: {
+        "/users": {
+          online: ["users"],
+          offline: {
+            friends: ["users"],
+            captain: "users"
+          }
+        }
+      }
+    })
+  });
+
+  const result = await client.emit({
+    request: {
+      url: "https://someurl.com/users",
+      method: "GET"
+    }
+  });
+
+  expect(result).toEqual({
+    raw: {
+      online: [],
+      offline: {
+        friends: [
+          {
+            id: 2,
+            username: "johndoe"
+          },
+          {
+            id: 3,
+            username: "janedoe"
+          }
+        ],
+        captain: null
+      }
+    },
+    data: {
+      pathIds: {
+        online: {
+          schema: "users",
+          values: [],
+          isArray: true
+        },
+        "offline.friends": {
+          schema: "users",
+          values: [2, 3],
+          isArray: true
+        },
+        "offline.captain": {
+          schema: "users",
+          values: null,
+          isArray: false
+        }
+      },
+      ids: {
+        users: [2, 3]
+      },
+      entities: {
+        users: {
+          "2": {
+            id: 2,
+            username: "johndoe"
+          },
+          "3": {
+            id: 3,
+            username: "janedoe"
+          }
+        }
+      }
+    },
+    info: {
+      headers: {},
+      status: 200
+    }
+  });
+
+  expect(await client.getCache().all()).toEqual({
+    "users:2": {
+      id: 2,
+      username: "johndoe"
+    },
+    "users:3": {
+      id: 3,
+      username: "janedoe"
+    },
+    '{"url":"https://someurl.com/users","method":"GET"}': {
+      online: {
+        ids: [],
+        schema: "users"
+      },
+      offline: {
+        friends: {
+          ids: [2, 3],
+          schema: "users"
+        },
+        captain: {
+          ids: null,
+          schema: "users"
+        }
       }
     }
   });

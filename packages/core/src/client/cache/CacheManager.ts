@@ -20,13 +20,19 @@ const deflatePathIds = (pathIds: NormalizedPathIDs) => {
   let obj = {};
   for (let key in pathIds) {
     const path = pathIds[key];
-    deepSet(
-      obj,
-      key,
-      path.isArray === false && path.values.length === 1
+    const ids =
+      path.isArray === false &&
+      Array.isArray(path.values) &&
+      path.values.length === 1
         ? path.values[0]
-        : path.values
-    );
+        : path.values;
+
+    const schema = path.schema;
+
+    deepSet(obj, key, {
+      ids,
+      schema
+    });
   }
   return obj;
 };
@@ -70,19 +76,26 @@ class CacheManager {
         toMergeUnderRequestName = deflatePathIds(normalized.pathIds);
       } else {
         const ids = normalized.ids[normalized.pathIds.$root.schema];
-
-        if (ids.length > 1) {
-          if (normalized.pathIds.$root.isArray === false) {
+        if (normalized.pathIds.$root.isArray === false) {
+          if (ids.length > 1) {
             console.warn(
-              "The route " +
-                request.url +
-                " returned an array, but is configured as a single-entity route in your normalizer."
+              "The entity is configured as a single-entity route, but received multiple entities. Only the first will be kept"
             );
           }
 
-          toMergeUnderRequestName = ids.slice();
+          toMergeUnderRequestName = {
+            $root: {
+              ids: ids.length > 0 ? ids[0] : null,
+              schema: normalized.pathIds.$root.schema
+            }
+          };
         } else {
-          toMergeUnderRequestName = ids[0];
+          toMergeUnderRequestName = {
+            $root: {
+              ids: ids.slice(),
+              schema: normalized.pathIds.$root.schema
+            }
+          };
         }
       }
 
@@ -95,7 +108,7 @@ class CacheManager {
   createRequestCacheKey(request: HTTPRequest) {
     return JSON.stringify({
       url: request.url,
-      method: request.method,
+      method: request.method || "GET",
       headers: request.headers
     });
   }

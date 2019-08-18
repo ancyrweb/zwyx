@@ -13,9 +13,9 @@ type ClientConfig = {
   normalizer?: Normalizer;
 };
 
-type Response<T extends any> = {
+type Response<T extends any, TEntity extends any = any> = {
   raw: T;
-  data: object;
+  data: Normalized<TEntity>;
   info: ResponseInfo;
 };
 
