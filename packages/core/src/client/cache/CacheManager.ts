@@ -1,5 +1,5 @@
 import SubscribeableCacheInterface from "./SubscribeableCacheInterface";
-import { Request } from "../types";
+import { HTTPRequest, Request } from "../types";
 import {
   Normalized,
   NormalizedPathIDs
@@ -46,12 +46,11 @@ class CacheManager {
    * Store the normalized data into the cache
    * @param config
    */
-  store(config: StoreConfig): StoreResult {
+  store(config: StoreConfig): void {
     const normalized = config.normalized;
     const request = config.request.request;
 
     let toCache = {};
-    let requestCacheKey = null;
 
     // We cache all the entities by default
     for (let entityName in normalized.entities) {
@@ -87,19 +86,18 @@ class CacheManager {
         }
       }
 
-      requestCacheKey = JSON.stringify({
-        url: request.url,
-        method: request.method,
-        headers: request.headers
-      });
-
-      toCache[requestCacheKey] = toMergeUnderRequestName;
+      toCache[this.createRequestCacheKey(request)] = toMergeUnderRequestName;
     }
 
     this.cache.merge(toCache);
-    return {
-      requestCacheKey
-    };
+  }
+
+  createRequestCacheKey(request: HTTPRequest) {
+    return JSON.stringify({
+      url: request.url,
+      method: request.method,
+      headers: request.headers
+    });
   }
 }
 

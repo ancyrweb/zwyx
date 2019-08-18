@@ -1,0 +1,39 @@
+{
+  "name": "zwyx-react",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^24.0.16",
+    "@types/node": "^12.6.8",
+    "@types/node-fetch": "^2.5.0",
+    "@types/normalizr": "^2.0.18",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.8.5",
+    "@types/react-test-renderer": "^16.8.3",
+    "jest": "^24.8.0",
+    "jest-dom": "^4.0.0",
+    "prettier": "^1.18.2",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
+    "react-test-renderer": "16.8.6",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3",
+    "zwyx": "../core/"
+  },
+  "peerDependencies": {
+    "react": "^16.8.3"
+  },
+  "scripts": {
+    "pretty": "prettier --write \"{src,lib}/**/*.{ts,tsx}\"",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "@babel/preset-react": "^7.0.0"
+  }
+}

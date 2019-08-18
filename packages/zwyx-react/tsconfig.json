@@ -1,0 +1,28 @@
+{
+  "include":  [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/**/__tests__/*.ts"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "es5",
+      "es6",
+      "esnext.asynciterable"
+    ],
+    "jsx": "react",
+    "target": "esnext",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "allowJs": true
+  }
+}

@@ -17,7 +17,6 @@ type Response<T extends any> = {
   raw: T;
   data: object;
   info: ResponseInfo;
-  cache: StoreResult | null;
 };
 
 class Client {
@@ -62,7 +61,7 @@ class Client {
         raw as any
       );
 
-      cacheResult = this.cacheManager.store({
+      this.cacheManager.store({
         response: raw,
         normalized,
         request
@@ -72,8 +71,7 @@ class Client {
     return {
       info: result.info,
       data: normalized,
-      raw,
-      cache: cacheResult
+      raw
     };
   }
 

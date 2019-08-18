@@ -1,12 +1,22 @@
 import Context from "./Context";
 
+export type HTTPMethod =
+  | "GET"
+  | "POST"
+  | "DELETE"
+  | "PUT"
+  | "OPTIONS"
+  | "HEAD"
+  | "PATCH";
+export type HTTPRequest = {
+  url: string;
+  method?: HTTPMethod;
+  headers?: Record<string, string>;
+  body?: any;
+};
+
 export type RawRequest = {
-  request: {
-    url: string;
-    method?: "GET" | "POST" | "DELETE" | "PUT" | "OPTIONS" | "HEAD" | "PATCH";
-    headers?: Record<string, string>;
-    body?: any;
-  };
+  request: HTTPRequest;
   context: Context;
 };
 
